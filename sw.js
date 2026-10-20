@@ -1,6 +1,6 @@
 // Carnet de calcul : fonctionnement hors connexion.
 // Change VERSION à chaque mise à jour de l'appli pour forcer le rafraîchissement.
-const VERSION = 'carnet-v1';
+const VERSION = 'carnet-v2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

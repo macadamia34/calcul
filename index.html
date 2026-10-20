@@ -6,37 +6,29 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Calcul">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#F5F7FB" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E1320" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFBF2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <title>Carnet de calcul</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
 /* Layout: one narrow column on graph paper, tabs on top, big ink numbers in the middle */
+/* Layout: one column on a sunny graph-paper page; each operation has its own colour */
 :root{
-  --paper:#F5F7FB; --grid:rgba(39,71,214,.07); --card:#FFFFFF; --ink:#18223D; --muted:#66718C;
-  --blue:#2747D6; --blue-soft:rgba(39,71,214,.10); --red:#D2353B; --red-soft:rgba(210,53,59,.10);
-  --green:#17865A; --green-soft:rgba(23,134,90,.12); --amber:#C27A0E; --amber-soft:rgba(194,122,14,.14);
-  --line:#DCE2EE;
-  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --paper:#FFFBF2; --grid:rgba(61,90,254,.08); --card:#FFFFFF; --ink:#232552; --muted:#6E7099;
+  --blue:#3D5AFE; --blue-soft:rgba(61,90,254,.12);
+  --c-add:#13B37A; --c-sub:#FF5E57; --c-mul:#7A5AF8; --c-div:#FF9F1C; --sun:#FFD23F;
+  --red:#F0453A; --red-soft:rgba(240,69,58,.12);
+  --green:#13B37A; --green-soft:rgba(19,179,122,.14); --amber:#F08C00; --amber-soft:rgba(255,159,28,.16);
+  --line:#EADFCB; --shadow:#E4D6BC;
+  --f-display:"Fredoka", "Baloo 2", "Segoe UI", system-ui, sans-serif;
   --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
-  --f-num:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-num:"Fredoka", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#0E1320; --grid:rgba(125,149,255,.06); --card:#161D2E; --ink:#E5EAF5; --muted:#8E99B3;
-  --blue:#8299FF; --blue-soft:rgba(130,153,255,.14); --red:#FF6E6E; --red-soft:rgba(255,110,110,.13);
-  --green:#4CC48A; --green-soft:rgba(76,196,138,.14); --amber:#F0A93B; --amber-soft:rgba(240,169,59,.15);
-  --line:#26304A; color-scheme:dark }}
-:root[data-theme="dark"]{
-  --paper:#0E1320; --grid:rgba(125,149,255,.06); --card:#161D2E; --ink:#E5EAF5; --muted:#8E99B3;
-  --blue:#8299FF; --blue-soft:rgba(130,153,255,.14); --red:#FF6E6E; --red-soft:rgba(255,110,110,.13);
-  --green:#4CC48A; --green-soft:rgba(76,196,138,.14); --amber:#F0A93B; --amber-soft:rgba(240,169,59,.15);
-  --line:#26304A; color-scheme:dark }
-
 *{box-sizing:border-box}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{margin:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
@@ -159,6 +151,57 @@ h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0;text-
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .empty-note{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);text-align:center;font-size:.93rem}
 .danger{color:var(--red)}
+
+/* ---- Joyful layer ---- */
+[data-op="add"]{--c:var(--c-add)} [data-op="sub"]{--c:var(--c-sub)} [data-op="mul"]{--c:var(--c-mul)} [data-op="div"]{--c:var(--c-div)}
+.brand span{color:var(--c-mul)}
+.brand .d1{color:var(--c-add)} .brand .d2{color:var(--c-sub)} .brand .d3{color:var(--c-div)}
+nav.tabs{border-radius:999px;box-shadow:0 3px 0 var(--shadow)}
+nav.tabs button{border-radius:999px}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
+.mode{border-radius:20px;border:2px solid color-mix(in srgb,var(--c) 30%,transparent);background:color-mix(in srgb,var(--c) 10%,#fff);box-shadow:0 4px 0 color-mix(in srgb,var(--c) 35%,transparent);transition:transform .12s}
+.mode:hover{border-color:var(--c)}
+.mode:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 35%,transparent)}
+.mode .sym{color:var(--c);font-size:2rem}
+.mode .pips i.on{background:var(--c)}
+.mode.wide{background:linear-gradient(115deg,var(--c-add),var(--c-mul) 55%,var(--c-sub));border:0;color:#fff;box-shadow:0 4px 0 #5a3fd0}
+.mode.wide .sym{color:#fff;font-size:1.7rem;letter-spacing:.06em}
+.mode.wide .pips i{background:rgba(255,255,255,.35)} .mode.wide .pips i.on{background:#fff}
+.chip{border-radius:14px;border-width:2px;box-shadow:0 3px 0 var(--shadow);font-family:var(--f-num);font-weight:600}
+.chip[aria-pressed="true"]{background:var(--c-mul);border-color:var(--c-mul);color:#fff;box-shadow:0 3px 0 #5a3fd0}
+.btn{border-radius:16px;background:var(--c-mul);color:#fff;box-shadow:0 4px 0 #5a3fd0;font-family:var(--f-display);font-weight:600;font-size:1.05rem}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #5a3fd0}
+.btn.ghost{background:#fff;color:var(--c-mul);border:2px solid color-mix(in srgb,var(--c-mul) 35%,transparent);box-shadow:0 4px 0 var(--shadow)}
+.board{border-radius:26px;border:2px solid color-mix(in srgb,var(--c) 35%,transparent);background:color-mix(in srgb,var(--c) 7%,#fff);box-shadow:0 5px 0 color-mix(in srgb,var(--c) 30%,transparent)}
+.q{color:var(--ink);font-weight:600}
+.q .op{color:var(--c)}
+.ans{color:var(--c);border-bottom-color:var(--c);border-bottom-width:4px;font-weight:600}
+.timebar{background:var(--c);opacity:.6;height:6px}
+.board.ok{background:var(--green-soft);border-color:var(--green);animation:pop .35s ease-out}
+.board.ko{animation:shake .35s}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.dots i{height:8px;border-radius:99px}
+.dots i.ok{background:var(--c-add)} .dots i.ko{background:var(--c-sub)} .dots i.hint{background:var(--sun)} .dots i.cur{background:var(--c-mul)}
+.pad button{border-radius:18px;border:2px solid var(--line);box-shadow:0 4px 0 var(--shadow);font-family:var(--f-num);font-weight:600;font-size:1.6rem;transition:transform .06s}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow);background:color-mix(in srgb,var(--c,var(--c-mul)) 15%,#fff)}
+.pad .del{color:var(--c-sub)}
+.combo{color:var(--c-div);font-weight:700}
+.cheer{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:700;font-size:1.5rem;color:var(--green);pointer-events:none;animation:rise .6s ease-out forwards}
+@keyframes rise{from{opacity:0;transform:translate(-50%,-20%) scale(.8)}30%{opacity:1}to{opacity:0;transform:translate(-50%,-120%) scale(1.1)}}
+.confetti{position:fixed;width:9px;height:12px;border-radius:2px;pointer-events:none;z-index:50;animation:fall 1s ease-out forwards}
+@keyframes fall{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.score .big{color:var(--c-mul);font-family:var(--f-display)}
+.kv div{border-radius:16px;border-width:2px;box-shadow:0 3px 0 var(--shadow)}
+.strat,.opstat,.chartbox,.heat-wrap,.mistake{border-radius:18px;border-width:2px;box-shadow:0 3px 0 var(--shadow)}
+.strat h3 .num{color:var(--c)}
+.ex{background:color-mix(in srgb,var(--c) 12%,#fff)}
+.opstat .num[style]{color:var(--c)!important}
+.stepper button{border-radius:10px;background:#fff;border-width:2px}
+.opstat .pips i.on{background:var(--c)}
+.banner{border-radius:16px}
+.banner.up{background:var(--sun);color:var(--ink)}
+@media (prefers-reduced-motion: reduce){.confetti,.cheer{display:none}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -166,7 +209,7 @@ h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0;text-
 
 <div class="app">
   <header class="top">
-    <h1 class="brand">Carnet de <span>calcul</span></h1>
+    <h1 class="brand">Carnet de <span>c</span><span class="d1">a</span><span class="d2">l</span><span class="d3">c</span><span>ul</span></h1>
     <div class="streak" id="streak"></div>
   </header>
   <nav class="tabs" role="tablist">
@@ -418,7 +461,7 @@ function render(){
 }
 
 function trainHTML(){
-  const card = op => `<button class="mode" data-start="${op}" id="m-${op}">
+  const card = op => `<button class="mode" data-start="${op}" data-op="${op}" id="m-${op}">
       <span class="sym">${OPS[op].sym}</span>
       <span class="name">${OPS[op].name}</span>
       <span class="lvl">${pips(S.levels[op])} Niv. ${S.levels[op]}</span>
@@ -476,7 +519,7 @@ function stratHTML(){
     <p class="muted" style="margin:0">Pendant une séance, le bouton « Astuce » applique ces méthodes au calcul affiché, avec les vrais nombres.</p>
     ${['add','sub','mul','div'].map(op => `
       <span class="label" style="margin-top:8px">${OPS[op].name}</span>
-      ${STRATS.filter(s=>s[0]===op).map(s=>`<div class="strat"><h3><span class="num">${OPS[op].sym}</span>${s[1]}</h3><p>${s[2]}</p><div class="ex">${s[3]}</div></div>`).join('')}
+      ${STRATS.filter(s=>s[0]===op).map(s=>`<div class="strat" data-op="${op}"><h3><span class="num">${OPS[op].sym}</span>${s[1]}</h3><p>${s[2]}</p><div class="ex">${s[3]}</div></div>`).join('')}
     `).join('')}
   </div>`;
 }
@@ -502,10 +545,10 @@ function chartSVG(){
   const bw = iw/20;
   const y = v => pt + ih - (v/SESSION_LEN)*ih;
   let g = '';
-  [0,5,10].forEach(v=>{ g += `<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">${v}</text>`; });
+  [0,5,10].forEach(v=>{ g += `<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="Fredoka, sans-serif">${v}</text>`; });
   ss.forEach((s,i)=>{
     const h = (s.score/SESSION_LEN)*ih, x = pl + i*bw + bw*.18;
-    const col = s.score>=9 ? 'var(--green)' : s.score>=6 ? 'var(--blue)' : 'var(--red)';
+    const col = s.score>=9 ? 'var(--c-add)' : s.score>=6 ? 'var(--c-mul)' : 'var(--c-sub)';
     g += `<rect x="${x}" y="${pt+ih-h}" width="${bw*.64}" height="${Math.max(h,1.5)}" rx="3" fill="${col}"><title>${new Date(s.d).toLocaleDateString('fr-FR')} · ${s.score}/${SESSION_LEN} · ${fmtS(s.avg)}</title></rect>`;
   });
   // average time line on secondary scale
@@ -514,7 +557,7 @@ function chartSVG(){
   const pts = ss.map((s,i)=>`${pl + i*bw + bw/2},${yt(s.avg)}`).join(' ');
   if (ss.length>1) g += `<polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linejoin="round"/>`;
   ss.forEach((s,i)=>{ g += `<circle cx="${pl + i*bw + bw/2}" cy="${yt(s.avg)}" r="${i===ss.length-1?4:2.5}" fill="var(--amber)"/>`; });
-  g += `<text x="${pl}" y="${H-6}" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">plus ancienne</text><text x="${W-pr}" y="${H-6}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">dernière</text>`;
+  g += `<text x="${pl}" y="${H-6}" font-size="11" fill="var(--muted)" font-family="Fredoka, sans-serif">plus ancienne</text><text x="${W-pr}" y="${H-6}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="Fredoka, sans-serif">dernière</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scores des 20 dernières séances">${g}</svg>`;
 }
 
@@ -542,7 +585,7 @@ function heatHTML(){
 function progHTML(){
   const opcard = op => {
     const T = S.totals[op], tr = trendFor(op);
-    return `<div class="opstat">
+    return `<div class="opstat" data-op="${op}">
       <div class="top"><span class="name" style="font-weight:700"><span class="num" style="color:var(--blue)">${OPS[op].sym}</span> ${OPS[op].name}</span></div>
       <div class="stepper"><button data-lv="${op}" data-d="-1" aria-label="Baisser le niveau" id="lvm-${op}">−</button>${pips(S.levels[op])}<button data-lv="${op}" data-d="1" aria-label="Monter le niveau" id="lvp-${op}">+</button></div>
       <div class="muted" style="font-size:.8rem">${LEVEL_DESC[op][S.levels[op]-1]}</div>
@@ -560,7 +603,7 @@ function progHTML(){
     <div class="section">
       <span class="label">Dernières séances</span>
       ${any ? `<div class="chartbox">${chartSVG()}</div>
-      <div class="legend"><span><i style="background:var(--green)"></i>9–10</span><span><i style="background:var(--blue)"></i>6–8</span><span><i style="background:var(--red)"></i>0–5</span><span><i style="background:var(--amber);border-radius:50%"></i>temps moyen par calcul</span></div>`
+      <div class="legend"><span><i style="background:var(--c-add)"></i>9–10</span><span><i style="background:var(--c-mul)"></i>6–8</span><span><i style="background:var(--c-sub)"></i>0–5</span><span><i style="background:var(--amber);border-radius:50%"></i>temps moyen par calcul</span></div>`
       : `<div class="empty-note">Tes séances apparaîtront ici : score sur ${SESSION_LEN} et temps moyen par calcul.</div>`}
     </div>
     <div class="section">
@@ -591,8 +634,24 @@ function bind(){
 }
 
 /* ---------- Drill ---------- */
+const CHEERS = ['Bravo !','Juste !','Top !','Bien vu !','Parfait !','Yes !','Super !'];
+function confetti(n=36){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const b = document.getElementById('board'); if (!b) return;
+  const r = b.getBoundingClientRect();
+  const cols = ['var(--c-add)','var(--c-sub)','var(--c-mul)','var(--c-div)','var(--sun)'];
+  for (let i=0;i<n;i++){
+    const c = document.createElement('i'); c.className='confetti';
+    c.style.left = (r.left + r.width/2) + 'px'; c.style.top = (r.top + r.height/2) + 'px';
+    c.style.background = cols[i%cols.length];
+    const a = Math.random()*Math.PI*2, d = 80 + Math.random()*140;
+    c.style.setProperty('--dx', Math.cos(a)*d+'px'); c.style.setProperty('--dy', (Math.sin(a)*d + 120)+'px');
+    c.style.setProperty('--r', (Math.random()*720-360)+'deg');
+    document.body.appendChild(c); setTimeout(()=>c.remove(), 1100);
+  }
+}
 function startDrill(mode, tables){
-  drill = {mode, tables, i:0, results:[], startLevels:{...S.levels}, done:false};
+  drill = {mode, tables, i:0, results:[], startLevels:{...S.levels}, done:false, combo:0};
   nextQ();
 }
 function nextQ(){
@@ -612,11 +671,12 @@ function renderDrill(){
     const r = drill.results[i]; return `<i class="${r ? (r.ok ? (r.hint?'hint':'ok') : 'ko') : (i===drill.i?'cur':'')}"></i>`;
   }).join('');
   const cls = drill.state==='ok' ? 'ok' : drill.state==='ko' ? 'ko' : '';
-  v.innerHTML = `<div class="drill">
+  v.innerHTML = `<div class="drill" data-op="${q.op}">
     <div class="dots" aria-label="Calcul ${drill.i+1} sur ${SESSION_LEN}">${dots}</div>
     <div class="board ${cls}" id="board">
-      <div class="meta"><span>${lvl}</span><span class="num">${drill.i+1}/${SESSION_LEN}</span></div>
-      <div class="q" aria-live="polite">${fr(q.a)} ${OPS[q.op].sym} ${fr(q.b)}</div>
+      <div class="meta"><span>${lvl}</span><span>${drill.combo>=3?`<span class="combo">Série de ${drill.combo} !</span> · `:""}<span class="num">${drill.i+1}/${SESSION_LEN}</span></span></div>
+      ${drill.state==='ok' ? `<div class="cheer">${pick(CHEERS)}</div>` : ''}
+      <div class="q" aria-live="polite">${fr(q.a)} <span class="op">${OPS[q.op].sym}</span> ${fr(q.b)}</div>
       <div class="ans num ${drill.input?'':'empty'}" id="ans">${drill.input}</div>
       ${drill.state==='ko' ? `<div class="correction">= ${fr(q.ans)}</div>` : ''}
       ${drill.state==='ask' ? `<div class="timebar" id="timebar"></div>` : ''}
@@ -668,8 +728,10 @@ function submit(){
   const lm = record(q, ok, secs, drill.hint);
   drill.results.push({q, ok, secs, hint:drill.hint, given:drill.input, lvl:S.levels[q.op]});
   drill.levelMsg = lm; save();
+  drill.combo = ok && !drill.hint ? drill.combo+1 : 0;
   drill.state = ok ? 'ok' : 'ko';
   renderDrill();
+  if (ok && (drill.combo%5===0 || lm>0)) confetti();
   if (ok) setTimeout(advance, lm ? 1400 : 550);
 }
 function advance(){
@@ -723,6 +785,7 @@ function renderResults(){
       <button class="btn ghost" id="home">Accueil</button>
     </div>
   </div>`;
+  if (score >= n*0.9) setTimeout(()=>{ const b=document.querySelector('.score'); if(b){ b.id='board'; confetti(60); b.removeAttribute('id'); } }, 150);
   $('#again').onclick = () => startDrill(drill.mode, drill.tables);
   $('#home').onclick = () => { drill=null; render(); };
 }
