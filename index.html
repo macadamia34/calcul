@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calcul">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#F5F7FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1320" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Carnet de calcul</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column on graph paper, tabs on top, big ink numbers in the middle */
+:root{
+  --paper:#F5F7FB; --grid:rgba(39,71,214,.07); --card:#FFFFFF; --ink:#18223D; --muted:#66718C;
+  --blue:#2747D6; --blue-soft:rgba(39,71,214,.10); --red:#D2353B; --red-soft:rgba(210,53,59,.10);
+  --green:#17865A; --green-soft:rgba(23,134,90,.12); --amber:#C27A0E; --amber-soft:rgba(194,122,14,.14);
+  --line:#DCE2EE;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --f-num:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1320; --grid:rgba(125,149,255,.06); --card:#161D2E; --ink:#E5EAF5; --muted:#8E99B3;
+  --blue:#8299FF; --blue-soft:rgba(130,153,255,.14); --red:#FF6E6E; --red-soft:rgba(255,110,110,.13);
+  --green:#4CC48A; --green-soft:rgba(76,196,138,.14); --amber:#F0A93B; --amber-soft:rgba(240,169,59,.15);
+  --line:#26304A; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0E1320; --grid:rgba(125,149,255,.06); --card:#161D2E; --ink:#E5EAF5; --muted:#8E99B3;
+  --blue:#8299FF; --blue-soft:rgba(130,153,255,.14); --red:#FF6E6E; --red-soft:rgba(255,110,110,.13);
+  --green:#4CC48A; --green-soft:rgba(76,196,138,.14); --amber:#F0A93B; --amber-soft:rgba(240,169,59,.15);
+  --line:#26304A; color-scheme:dark }
+
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body{-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+html,body{min-height:100%}
+body{
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.5;
+}
+.app{max-width:560px;margin:0 auto;padding-block:18px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:18px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.02em;margin:0}
+.brand span{color:var(--blue)}
+.streak{font-size:.85rem;color:var(--muted);font-family:var(--f-num)}
+nav.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px}
+nav.tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:700 .92rem var(--f-body);padding:9px 6px;border-radius:9px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--blue);color:var(--paper)}
+button{font-family:inherit}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0;text-wrap:balance}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.section{display:flex;flex-direction:column;gap:10px}
+.muted{color:var(--muted)}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* Mode list */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mode:hover{border-color:var(--blue)}
+.mode:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.mode .sym{font-family:var(--f-num);font-weight:700;font-size:1.6rem;color:var(--blue);line-height:1}
+.mode .name{font-weight:700}
+.mode.wide{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;background:var(--blue);color:var(--paper);border-color:var(--blue)}
+.mode.wide .sym{color:var(--paper)}
+.lvl{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.mode.wide .lvl{color:inherit;opacity:.85}
+.pips{display:flex;gap:3px}
+.pips i{width:8px;height:8px;border-radius:2px;background:var(--line)}
+.pips i.on{background:var(--blue)}
+.mode.wide .pips i{background:rgba(255,255,255,.3)}
+.mode.wide .pips i.on{background:var(--paper)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 .95rem var(--f-num);min-width:44px;height:40px;border-radius:10px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
+.btn{border:0;border-radius:12px;padding:13px 18px;font:700 1rem var(--f-body);cursor:pointer;background:var(--blue);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row .btn{flex:1}
+
+/* Drill */
+.drill{display:flex;flex-direction:column;gap:14px}
+.dots{display:flex;gap:5px}
+.dots i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.dots i.ok{background:var(--green)} .dots i.ko{background:var(--red)} .dots i.hint{background:var(--amber)} .dots i.cur{background:var(--blue)}
+.board{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px 16px 18px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;overflow:hidden}
+.board .meta{position:absolute;top:10px;left:14px;right:14px;display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
+.q{font-family:var(--f-num);font-weight:700;font-size:clamp(2.1rem,10vw,3.2rem);letter-spacing:-.02em;white-space:nowrap}
+.ans{font-family:var(--f-num);font-weight:700;font-size:clamp(1.9rem,9vw,2.7rem);min-width:4ch;text-align:center;border-bottom:3px solid var(--blue);padding:0 10px;min-height:1.4em;color:var(--blue)}
+.ans.empty::after{content:"?";color:var(--line)}
+.board.ok{background:var(--green-soft);border-color:var(--green)} .board.ok .ans{color:var(--green);border-color:var(--green)}
+.board.ko{background:var(--red-soft);border-color:var(--red)} .board.ko .ans{color:var(--red);border-color:var(--red);text-decoration:line-through}
+.timebar{position:absolute;left:0;bottom:0;height:4px;background:var(--blue);opacity:.5}
+.correction{font-family:var(--f-num);font-size:1.15rem;color:var(--green);font-weight:700}
+.hint{background:var(--amber-soft);border:1px solid var(--amber);border-radius:12px;padding:12px 14px;font-size:.95rem}
+.hint b{color:var(--amber)}
+.hint .steps{font-family:var(--f-num);font-size:.92rem;margin-top:6px;display:flex;flex-direction:column;gap:2px;overflow-x:auto}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{height:58px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 1.45rem var(--f-num);cursor:pointer;touch-action:manipulation}
+.pad button:active{background:var(--blue-soft)}
+.pad .zero{grid-column:span 2}
+.pad .del{color:var(--muted)}
+.drill-actions{display:flex;justify-content:space-between;gap:10px}
+.linkbtn{border:0;background:none;color:var(--muted);font:700 .9rem var(--f-body);cursor:pointer;padding:6px 2px}
+.linkbtn.amber{color:var(--amber)}
+
+/* Results */
+.score{display:flex;align-items:baseline;gap:10px}
+.score .big{font-family:var(--f-display);font-weight:800;font-size:3.4rem;line-height:1;color:var(--blue)}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kv div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.kv strong{display:block;font-family:var(--f-num);font-size:1.15rem}
+.mistakes{display:flex;flex-direction:column;gap:8px}
+.mistake{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.mistake .num{font-weight:700}
+.banner{border-radius:12px;padding:10px 14px;font-weight:700;font-size:.95rem}
+.banner.up{background:var(--green-soft);color:var(--green)} .banner.down{background:var(--amber-soft);color:var(--amber)}
+
+/* Strategies */
+.strat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.strat h3{margin:0;font-size:1rem;display:flex;gap:8px;align-items:center}
+.strat h3 .num{color:var(--blue)}
+.strat p{margin:0;font-size:.93rem;color:var(--muted)}
+.ex{font-family:var(--f-num);font-size:.9rem;background:var(--blue-soft);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+
+/* Progress */
+.opstats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opstat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.opstat .top{display:flex;justify-content:space-between;align-items:center}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:700 1rem var(--f-num);cursor:pointer}
+.trend{font-size:.8rem;font-weight:700}
+.trend.good{color:var(--green)} .trend.bad{color:var(--red)} .trend.flat{color:var(--muted)}
+.chartbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.chartbox svg{width:100%;height:auto;display:block}
+.heat-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px}
+.heat{border-collapse:separate;border-spacing:3px;margin:0 auto;font-family:var(--f-num);font-size:.72rem}
+.heat th{color:var(--muted);font-weight:700;width:26px;height:22px}
+.heat td{width:26px;height:26px;border-radius:5px;background:var(--paper);border:1px solid var(--line);text-align:center;color:transparent}
+.heat td.g{background:var(--green);border-color:var(--green)}
+.heat td.a{background:var(--amber);border-color:var(--amber)}
+.heat td.r{background:var(--red);border-color:var(--red)}
+.heat td.lo{opacity:.45}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.empty-note{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);text-align:center;font-size:.93rem}
+.danger{color:var(--red)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <h1 class="brand">Carnet de <span>calcul</span></h1>
+    <div class="streak" id="streak"></div>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-train" aria-selected="true" data-tab="train">S'entraîner</button>
+    <button role="tab" id="t-strat" aria-selected="false" data-tab="strat">Astuces</button>
+    <button role="tab" id="t-prog" aria-selected="false" data-tab="prog">Progrès</button>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<script>
+(() => {
+const OPS = {
+  add:{sym:'+', name:'Addition'},
+  sub:{sym:'−', name:'Soustraction'},
+  mul:{sym:'×', name:'Multiplication'},
+  div:{sym:'÷', name:'Division'}
+};
+const MAXL = 7;
+const LEVEL_DESC = {
+  add:['1 chiffre + 1 chiffre','2 chiffres + 1 chiffre','Petits 2 chiffres','2 chiffres + 2 chiffres','3 chiffres + 2 chiffres','3 chiffres (jusqu\'à 500)','3 chiffres + 3 chiffres'],
+  sub:['Moins de 20','2 chiffres − 1 chiffre','Petits 2 chiffres','2 chiffres − 2 chiffres','3 chiffres − 2 chiffres','3 chiffres (jusqu\'à 1000)','3 chiffres − 3 chiffres'],
+  mul:['Tables de 2, 5 et 10','Tables 2 à 5','Tables 2 à 9','Tables 2 à 12','2 chiffres × 1 chiffre','Jusqu\'à 99 × 9','2 chiffres × 2 chiffres'],
+  div:['Tables de 2, 5 et 10','Tables 2 à 5','Tables 2 à 9','Tables 2 à 12','Résultat à 2 chiffres','Résultat jusqu\'à 99','Diviseur à 2 chiffres']
+};
+const KEY = 'carnet-calcul-v1';
+const SESSION_LEN = 10;
+
+function fresh(){
+  const per = () => ({add:0,sub:0,mul:0,div:0});
+  return {
+    levels:{add:1,sub:1,mul:1,div:1},
+    win:{add:[],sub:[],mul:[],div:[]},
+    totals:{add:{n:0,ok:0,t:0},sub:{n:0,ok:0,t:0},mul:{n:0,ok:0,t:0},div:{n:0,ok:0,t:0}},
+    facts:{}, sessions:[], tables:[6,7,8,9]
+  };
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || fresh(); } catch(e){ S = fresh(); }
+const base = fresh();
+for (const k in base) if (S[k] === undefined) S[k] = base[k];
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const fr = n => Number(n).toLocaleString('fr-FR');
+const fmtS = s => (Math.round(s*10)/10).toLocaleString('fr-FR') + ' s';
+const $ = s => document.querySelector(s);
+
+/* ---------- Generators ---------- */
+const ADD_R = [[1,9,1,9],[10,50,2,9],[10,50,10,40],[15,99,11,99],[100,500,11,99],[100,500,100,499],[120,999,101,999]];
+function genAdd(L){ const r = ADD_R[L-1]; return [rnd(r[0],r[1]), rnd(r[2],r[3])]; }
+function genMulPair(L){
+  let a,b;
+  switch(L){
+    case 1: a = pick([2,5,10]); b = rnd(1,10); break;
+    case 2: a = rnd(2,5); b = rnd(2,10); break;
+    case 3: a = rnd(2,9); b = rnd(2,9); break;
+    case 4: a = rnd(3,12); b = rnd(6,12); break;
+    case 5: a = rnd(11,30); b = rnd(2,9); break;
+    case 6: a = rnd(31,99); b = rnd(3,9); break;
+    default: a = rnd(11,25); b = rnd(11,19);
+  }
+  return [a,b];
+}
+function makeQ(op, L, tables){
+  if (op==='add'){ const [a,b] = genAdd(L); return {op,a,b,ans:a+b}; }
+  if (op==='sub'){ const [x,y] = genAdd(L); return {op,a:x+y,b:y,ans:x}; }
+  if (op==='mul'){
+    let a,b;
+    if (tables){ a = pick(tables); b = rnd(1,10); }
+    else { [a,b] = genMulPair(L); }
+    if (L<=4 && Math.random()<.5) [a,b] = [b,a];
+    return {op,a,b,ans:a*b};
+  }
+  // division
+  let q,d;
+  if (tables){ d = pick(tables); q = rnd(1,10); }
+  else if (L<=4){ const [a,b] = genMulPair(L); if (Math.random()<.5){d=a;q=b;} else {d=b;q=a;} }
+  else if (L===7){ d = rnd(11,19); q = rnd(2,9); }
+  else { const [a,b] = genMulPair(L); q=a; d=b; }
+  return {op,a:q*d,b:d,ans:q};
+}
+const TARGET = {add:[3,4,6,8,10,12,15], sub:[3,5,7,9,11,13,16], mul:[3,3.5,4,5,9,12,18], div:[4,4.5,5,6,10,13,15]};
+
+/* ---------- Strategy hints ---------- */
+function decomp(n){ // [hundreds, tens, units] non-zero
+  const h = Math.floor(n/100)*100, t = Math.floor((n%100)/10)*10, u = n%10;
+  return [h,t,u].filter(x=>x>0);
+}
+function hintAdd(a,b){
+  const big = Math.max(a,b), small = Math.min(a,b), sum = a+b;
+  if (small%10>=8 && small>=8){
+    const r = small + (10 - small%10), back = r - small;
+    return {t:'Arrondis puis corrige', s:[`${big} + ${r} = ${big+r}`, `${big+r} − ${back} = ${sum}`],
+      e:`${small} est presque ${r} : ajoute ${r}, puis retire ${back}.`};
+  }
+  if (small<10){
+    const c = 10 - big%10;
+    if (big%10!==0 && small>c) return {t:'Complète à la dizaine', s:[`${big} + ${c} = ${big+c}`, `${big+c} + ${small-c} = ${sum}`],
+      e:`Coupe ${small} en ${c} + ${small-c} pour passer par ${big+c}.`};
+    return {t:'Ajoute les unités', s:[`${big} + ${small} = ${sum}`], e:`Pas de passage de dizaine ici.`};
+  }
+  const parts = decomp(small); let cur = big; const steps = [];
+  parts.forEach(p => { steps.push(`${cur} + ${p} = ${cur+p}`); cur += p; });
+  return {t:'Ajoute morceau par morceau', s:steps, e:`Décompose ${small} en ${parts.join(' + ')} et ajoute de gauche à droite.`};
+}
+function hintSub(a,b){
+  const d = a-b;
+  if (b%10>=8 && b>=8){
+    const r = b + (10 - b%10), back = r - b;
+    return {t:'Enlève trop, puis rends', s:[`${a} − ${r} = ${a-r}`, `${a-r} + ${back} = ${d}`],
+      e:`Retire ${r} (facile), puis rajoute les ${back} enlevés en trop.`};
+  }
+  if (b>=10 && d<=25){
+    const up = Math.ceil(b/10)*10;
+    const s1 = up - b, s2 = a - up;
+    if (up<=a && s1>0) return {t:'Monte de l\'un à l\'autre', s:[`${b} → ${up} : +${s1}`, `${up} → ${a} : +${s2}`, `${s1} + ${s2} = ${d}`],
+      e:`Les deux nombres sont proches : compte l'écart en montant depuis ${b}.`};
+  }
+  if (b<10){
+    const u = a%10;
+    if (b>u && u>0) return {t:'Descends à la dizaine', s:[`${a} − ${u} = ${a-u}`, `${a-u} − ${b-u} = ${d}`],
+      e:`Coupe ${b} en ${u} + ${b-u} pour passer par ${a-u}.`};
+    return {t:'Retire les unités', s:[`${a} − ${b} = ${d}`], e:`Pas de passage de dizaine ici.`};
+  }
+  const parts = decomp(b); let cur = a; const steps = [];
+  parts.forEach(p => { steps.push(`${cur} − ${p} = ${cur-p}`); cur -= p; });
+  return {t:'Retire morceau par morceau', s:steps, e:`Décompose ${b} en ${parts.join(' + ')} et retire de gauche à droite.`};
+}
+function hintMul(a,b){
+  const p = a*b;
+  const has = k => a===k || b===k;
+  const other = k => a===k ? b : a;
+  if ((a===7&&b===8)||(a===8&&b===7)) return {t:'5, 6, 7, 8', s:['56 = 7 × 8'], e:'Les chiffres se suivent : 5 6 = 7 × 8.'};
+  if (has(1)) return {t:'Fois 1', s:[`${p}`], e:'Multiplier par 1 ne change rien.'};
+  if (has(10)) { const n = other(10); return {t:'Fois 10', s:[`${n} × 10 = ${p}`], e:'Ajoute un zéro à droite.'}; }
+  if (has(9) && other(9)<=99) { const n = other(9); return {t:'Fois 10, moins une fois', s:[`${n} × 10 = ${n*10}`, `${n*10} − ${n} = ${p}`], e:'9 fois, c\'est 10 fois moins 1 fois.'}; }
+  if (has(5)) { const n = other(5); return {t:'Fois 10, puis moitié', s:[`${n} × 10 = ${n*10}`, `${n*10} ÷ 2 = ${p}`], e:'5 est la moitié de 10.'}; }
+  if (has(11) && other(11)<=99 && other(11)>=10) { const n = other(11), t = Math.floor(n/10), u = n%10;
+    return {t:'L\'astuce du 11', s:[`${t} + ${u} = ${t+u}`, `On glisse ${t+u} entre ${t} et ${u} → ${p}`], e:'Pour un nombre à 2 chiffres × 11, glisse la somme des chiffres au milieu (avec retenue si ≥ 10).'}; }
+  if (has(11)) { const n = other(11); return {t:'Fois 11', s:[`${n} × 10 = ${n*10}`, `${n*10} + ${n} = ${p}`], e:'11 fois, c\'est 10 fois plus 1 fois.'}; }
+  if (has(12) && other(12)<=12) { const n = other(12); return {t:'10 fois + 2 fois', s:[`${n} × 10 = ${n*10}`, `${n} × 2 = ${n*2}`, `${n*10} + ${n*2} = ${p}`], e:'Décompose 12 en 10 + 2.'}; }
+  if (a>=10 && b>=10){
+    const [x,y] = a>=b ? [a,b] : [b,a];
+    const t = Math.floor(y/10)*10, u = y%10;
+    return {t:'Coupe un des nombres', s:[`${x} × ${t} = ${x*t}`, `${x} × ${u} = ${x*u}`, `${x*t} + ${x*u} = ${p}`], e:`${y} = ${t} + ${u} : fais les deux produits puis ajoute.`};
+  }
+  if (a>=13 || b>=13){
+    const [x,y] = a>=b ? [a,b] : [b,a];
+    const t = Math.floor(x/10)*10, u = x%10;
+    if (u===0) return {t:'Fois la dizaine', s:[`${t/10} × ${y} = ${t/10*y}`, `puis × 10 = ${p}`], e:'Calcule sans le zéro, puis remets-le.'};
+    return {t:'Distribue sur les dizaines', s:[`${t} × ${y} = ${t*y}`, `${u} × ${y} = ${u*y}`, `${t*y} + ${u*y} = ${p}`], e:`${x} = ${t} + ${u} : multiplie chaque morceau par ${y}.`};
+  }
+  if (has(2)) { const n = other(2); return {t:'Le double', s:[`${n} + ${n} = ${p}`], e:'Fois 2, c\'est le double.'}; }
+  if (has(4)) { const n = other(4); return {t:'Double du double', s:[`${n} × 2 = ${n*2}`, `${n*2} × 2 = ${p}`], e:'4 = 2 × 2 : double deux fois.'}; }
+  if (has(8)) { const n = other(8); return {t:'Double, double, double', s:[`${n} × 2 = ${n*2}`, `× 2 = ${n*4}`, `× 2 = ${p}`], e:'8 = 2 × 2 × 2.'}; }
+  if (has(3)) { const n = other(3); return {t:'Double plus une fois', s:[`${n} × 2 = ${n*2}`, `${n*2} + ${n} = ${p}`], e:'3 fois, c\'est 2 fois plus 1 fois.'}; }
+  if (has(6)) { const n = other(6); return {t:'5 fois plus une fois', s:[`${n} × 5 = ${n*5}`, `${n*5} + ${n} = ${p}`], e:'6 fois, c\'est 5 fois plus 1 fois.'}; }
+  if (has(7)) { const n = other(7); return {t:'5 fois plus 2 fois', s:[`${n} × 5 = ${n*5}`, `${n} × 2 = ${n*2}`, `${n*5} + ${n*2} = ${p}`], e:'7 = 5 + 2.'}; }
+  return {t:'Décompose', s:[`${a} × ${b} = ${p}`], e:''};
+}
+function hintDiv(D,d){
+  const q = D/d;
+  if (d===1) return {t:'Divisé par 1', s:[`${q}`], e:'Le nombre ne change pas.'};
+  if (d<=12 && q<=12) {
+    const extra = d===5 ? `Autre voie : ${D} ÷ 10 × 2 = ${q}` : (d===2 ? `C'est la moitié de ${D}.` : '');
+    return {t:'Retourne en multiplication', s:[`${d} × ? = ${D}`, `${d} × ${q} = ${D}`], e:`Cherche dans la table de ${d}. ${extra}`};
+  }
+  if (d===5) return {t:'÷ 10 puis × 2', s:[`${D} ÷ 10 = ${D/10}`, `${D/10} × 2 = ${q}`], e:'Diviser par 5, c\'est diviser par 10 et doubler.'};
+  if (d===2||d===4||d===8){
+    const steps=[]; let cur=D, k=d;
+    while(k>1){ steps.push(`${cur} ÷ 2 = ${cur/2}`); cur/=2; k/=2; }
+    return {t:'Moitiés successives', s:steps, e:`${d} = ${d===2?'2':d===4?'2 × 2':'2 × 2 × 2'} : prends la moitié ${d===2?'une':d===4?'deux':'trois'} fois.`};
+  }
+  const t = Math.floor(q/10)*10;
+  if (t>0 && q%10!==0){
+    const part = d*t, rest = D - part;
+    return {t:'Coupe le dividende', s:[`${D} = ${part} + ${rest}`, `${part} ÷ ${d} = ${t}`, `${rest} ÷ ${d} = ${q-t}`, `${t} + ${q-t} = ${q}`], e:`Sépare ${D} en un multiple facile de ${d} (${part}) et un reste.`};
+  }
+  return {t:'Retourne en multiplication', s:[`${d} × ? = ${D}`, `${d} × ${q} = ${D}`], e:`Encadre : ${d} × ${Math.max(q-1,1)} et ${d} × ${q+1}.`};
+}
+function hintFor(q){
+  return ({add:hintAdd,sub:hintSub,mul:hintMul,div:hintDiv})[q.op](q.a,q.b);
+}
+function hintHTML(h){
+  return `<div class="hint" role="note"><b>Astuce · ${h.t}</b><div>${h.e}</div><div class="steps">${h.s.map(x=>`<span>${x}</span>`).join('')}</div></div>`;
+}
+
+/* ---------- Adaptive levels ---------- */
+function record(q, ok, secs, usedHint){
+  const T = S.totals[q.op]; T.n++; if (ok) T.ok++; T.t += Math.min(secs, 60);
+  // facts grid for tables 2..12
+  let x=null,y=null;
+  if (q.op==='mul'){ x=q.a; y=q.b; } else if (q.op==='div'){ x=q.b; y=q.ans; }
+  if (x!==null && x>=2 && x<=12 && y>=2 && y<=12){
+    const k = Math.min(x,y)+'x'+Math.max(x,y);
+    const f = S.facts[k] || (S.facts[k]={n:0,ok:0,t:0});
+    f.n++; if (ok) f.ok++; f.t += Math.min(secs,30);
+  }
+  if (q.fixed) return 0;
+  const W = S.win[q.op];
+  const fast = ok && !usedHint && secs <= TARGET[q.op][S.levels[q.op]-1];
+  W.push({ok: ok && !usedHint, fast});
+  if (W.length>6) W.shift();
+  const errs = W.filter(w=>!w.ok).length;
+  if (W.length>=6 && errs===0 && W.filter(w=>w.fast).length>=5 && S.levels[q.op]<MAXL){ S.levels[q.op]++; S.win[q.op]=[]; return 1; }
+  if (W.filter(w=>!w.ok).length>=3 && S.levels[q.op]>1){ S.levels[q.op]--; S.win[q.op]=[]; return -1; }
+  return 0;
+}
+
+/* ---------- Views ---------- */
+let tab = 'train';
+let drill = null;
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => {
+  if (drill && !drill.done && !confirmLeave()) return;
+  drill = null; setTab(b.dataset.tab);
+}));
+function confirmLeave(){ return true; }
+function setTab(t){
+  tab = t;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
+  render();
+}
+function pips(l){ return `<span class="pips">${Array.from({length:MAXL},(_,i)=>`<i class="${i<l?'on':''}"></i>`).join('')}</span>`; }
+
+function streakDays(){
+  const days = new Set(S.sessions.map(s=>s.d.slice(0,10)));
+  let n=0; const d = new Date();
+  const key = dt => dt.toISOString().slice(0,10);
+  if (!days.has(key(d))) d.setDate(d.getDate()-1);
+  while(days.has(key(d))){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function renderStreak(){
+  const n = streakDays();
+  const today = S.sessions.filter(s=>s.d.slice(0,10)===new Date().toISOString().slice(0,10)).length;
+  $('#streak').textContent = n ? `${n} jour${n>1?'s':''} d'affilée · ${today} séance${today>1?'s':''} aujourd'hui` : 'Première séance du jour ?';
+}
+
+function render(){
+  renderStreak();
+  const v = $('#view');
+  if (drill) return renderDrill();
+  if (tab==='train') v.innerHTML = trainHTML();
+  else if (tab==='strat') v.innerHTML = stratHTML();
+  else v.innerHTML = progHTML();
+  bind();
+}
+
+function trainHTML(){
+  const card = op => `<button class="mode" data-start="${op}" id="m-${op}">
+      <span class="sym">${OPS[op].sym}</span>
+      <span class="name">${OPS[op].name}</span>
+      <span class="lvl">${pips(S.levels[op])} Niv. ${S.levels[op]}</span>
+      <span class="muted" style="font-size:.8rem">${LEVEL_DESC[op][S.levels[op]-1]}</span>
+    </button>`;
+  const avg = Math.round((S.levels.add+S.levels.sub+S.levels.mul+S.levels.div)/4);
+  return `<div class="section" style="gap:18px">
+    <div class="section">
+      <span class="label">Séance de ${SESSION_LEN} calculs</span>
+      <div class="modes">
+        <button class="mode wide" data-start="mix" id="m-mix">
+          <span style="display:flex;flex-direction:column;gap:4px">
+            <span class="name" style="font-size:1.1rem">Mélange des 4 opérations</span>
+            <span class="lvl">Chaque opération à ton niveau actuel</span>
+          </span>
+          <span class="sym">+−×÷</span>
+        </button>
+        ${['add','sub','mul','div'].map(card).join('')}
+      </div>
+      <p class="muted" style="margin:0;font-size:.85rem">Le niveau monte quand tu enchaînes 6 bonnes réponses rapides, et redescend après 3 erreurs. Pas besoin de valider : la réponse est vérifiée dès que tu as tapé le bon nombre de chiffres. Pas de chrono qui pénalise, la barre sert juste de repère.</p>
+    </div>
+    <div class="section">
+      <span class="label">Réviser des tables précises</span>
+      <div class="chips" id="chips">
+        ${Array.from({length:11},(_,i)=>i+2).map(n=>`<button class="chip" aria-pressed="${S.tables.includes(n)}" data-table="${n}" id="tb-${n}">${n}</button>`).join('')}
+      </div>
+      <div class="row">
+        <button class="btn" data-tables="mul" id="go-tmul" ${S.tables.length?'':'disabled'}>× Multiplier</button>
+        <button class="btn ghost" data-tables="div" id="go-tdiv" ${S.tables.length?'':'disabled'}>÷ Diviser</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+const STRATS = [
+  ['add','Compléter à la dizaine','Coupe le petit nombre pour atteindre d\'abord la dizaine ronde.','47 + 8 → 47 + 3 = 50, puis + 5 = 55'],
+  ['add','Arrondir puis corriger','Quand un nombre finit par 8 ou 9, ajoute la dizaine ronde puis retire l\'excédent.','56 + 29 → 56 + 30 = 86, puis − 1 = 85'],
+  ['add','De gauche à droite','Ajoute les centaines, puis les dizaines, puis les unités. Tu gardes un seul nombre en tête.','348 + 135 → 448 → 478 → 483'],
+  ['sub','Enlever trop puis rendre','Retire la dizaine ronde au-dessus, puis rajoute la différence.','83 − 19 → 83 − 20 = 63, puis + 1 = 64'],
+  ['sub','Monter de l\'un à l\'autre','Quand les nombres sont proches, compte l\'écart en montant, comme un commerçant qui rend la monnaie.','82 − 67 → 67→70 (+3), 70→82 (+12) = 15'],
+  ['sub','Même écart','Ajouter la même chose aux deux nombres ne change pas la différence.','73 − 38 = 75 − 40 = 35'],
+  ['mul','Fois 9','10 fois moins une fois.','7 × 9 = 70 − 7 = 63'],
+  ['mul','Fois 5','10 fois, puis la moitié.','14 × 5 = 140 ÷ 2 = 70'],
+  ['mul','Fois 4 et fois 8','Double, double (et encore double pour 8).','7 × 8 → 14 → 28 → 56'],
+  ['mul','Fois 11','Pour un nombre à 2 chiffres, glisse la somme des chiffres au milieu.','35 × 11 → 3 (3+5) 5 = 385'],
+  ['mul','Distribuer','Coupe le grand nombre en dizaines et unités, multiplie chaque morceau.','23 × 7 = 140 + 21 = 161'],
+  ['mul','Les carrés voisins','(n−1)(n+1) = n² − 1.','19 × 21 = 400 − 1 = 399'],
+  ['div','Retourner en multiplication','Diviser, c\'est chercher le nombre manquant dans une table.','56 ÷ 7 → 7 × ? = 56 → 8'],
+  ['div','Diviser par 5','Divise par 10 puis double.','85 ÷ 5 = 8,5 × 2 = 17'],
+  ['div','Couper le dividende','Sépare en un multiple facile et un reste.','156 ÷ 6 → 120 ÷ 6 + 36 ÷ 6 = 20 + 6 = 26'],
+  ['div','Moitiés successives','÷ 4 = deux moitiés, ÷ 8 = trois moitiés.','184 ÷ 4 → 92 → 46'],
+];
+function stratHTML(){
+  return `<div class="section">
+    <p class="muted" style="margin:0">Pendant une séance, le bouton « Astuce » applique ces méthodes au calcul affiché, avec les vrais nombres.</p>
+    ${['add','sub','mul','div'].map(op => `
+      <span class="label" style="margin-top:8px">${OPS[op].name}</span>
+      ${STRATS.filter(s=>s[0]===op).map(s=>`<div class="strat"><h3><span class="num">${OPS[op].sym}</span>${s[1]}</h3><p>${s[2]}</p><div class="ex">${s[3]}</div></div>`).join('')}
+    `).join('')}
+  </div>`;
+}
+
+function trendFor(op){
+  const ss = S.sessions.filter(s=>s.ops && s.ops[op] && s.ops[op].n>0);
+  if (ss.length<4) return {cls:'flat', txt:'Pas encore assez de séances pour une tendance'};
+  const half = Math.min(5, Math.floor(ss.length/2));
+  const rec = ss.slice(-half), old = ss.slice(-2*half, -half);
+  const m = arr => { let n=0,t=0,ok=0; arr.forEach(s=>{n+=s.ops[op].n;t+=s.ops[op].t;ok+=s.ops[op].ok;}); return {t:t/n, acc:ok/n, lvl: arr.reduce((a,s)=>a+(s.ops[op].lvl||0),0)/arr.length}; };
+  const a = m(old), b = m(rec);
+  if (b.lvl > a.lvl + .4) return {cls:'good', txt:`Niveau en hausse (${fr(Math.round(a.lvl*10)/10)} → ${fr(Math.round(b.lvl*10)/10)})`};
+  const dt = b.t - a.t;
+  if (dt < -0.3) return {cls:'good', txt:`${fmtS(-dt)} plus rapide par calcul`};
+  if (dt > 0.5 && b.lvl <= a.lvl) return {cls:'bad', txt:`${fmtS(dt)} plus lent par calcul`};
+  return {cls:'flat', txt:'Stable sur les dernières séances'};
+}
+
+function chartSVG(){
+  const ss = S.sessions.slice(-20);
+  const W=520,H=170,pl=30,pr=10,pt=12,pb=26;
+  const iw=W-pl-pr, ih=H-pt-pb;
+  const bw = iw/20;
+  const y = v => pt + ih - (v/SESSION_LEN)*ih;
+  let g = '';
+  [0,5,10].forEach(v=>{ g += `<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">${v}</text>`; });
+  ss.forEach((s,i)=>{
+    const h = (s.score/SESSION_LEN)*ih, x = pl + i*bw + bw*.18;
+    const col = s.score>=9 ? 'var(--green)' : s.score>=6 ? 'var(--blue)' : 'var(--red)';
+    g += `<rect x="${x}" y="${pt+ih-h}" width="${bw*.64}" height="${Math.max(h,1.5)}" rx="3" fill="${col}"><title>${new Date(s.d).toLocaleDateString('fr-FR')} · ${s.score}/${SESSION_LEN} · ${fmtS(s.avg)}</title></rect>`;
+  });
+  // average time line on secondary scale
+  const maxT = Math.max(...ss.map(s=>s.avg), 5);
+  const yt = v => pt + ih - (v/maxT)*ih;
+  const pts = ss.map((s,i)=>`${pl + i*bw + bw/2},${yt(s.avg)}`).join(' ');
+  if (ss.length>1) g += `<polyline points="${pts}" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linejoin="round"/>`;
+  ss.forEach((s,i)=>{ g += `<circle cx="${pl + i*bw + bw/2}" cy="${yt(s.avg)}" r="${i===ss.length-1?4:2.5}" fill="var(--amber)"/>`; });
+  g += `<text x="${pl}" y="${H-6}" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">plus ancienne</text><text x="${W-pr}" y="${H-6}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">dernière</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Scores des 20 dernières séances">${g}</svg>`;
+}
+
+function heatHTML(){
+  let h = '<table class="heat"><tr><th>×</th>';
+  for (let c=2;c<=12;c++) h += `<th>${c}</th>`;
+  h += '</tr>';
+  for (let r=2;r<=12;r++){
+    h += `<tr><th>${r}</th>`;
+    for (let c=2;c<=12;c++){
+      const f = S.facts[Math.min(r,c)+'x'+Math.max(r,c)];
+      let cls = '';
+      if (f){
+        const acc = f.ok/f.n, t = f.t/f.n;
+        cls = acc<0.7 ? 'r' : t>5 ? 'a' : 'g';
+        if (f.n<2) cls += ' lo';
+      }
+      h += `<td class="${cls}" title="${r} × ${c}${f?` · ${f.ok}/${f.n} juste · ${fmtS(f.t/f.n)}`:' · pas encore vu'}">${r*c}</td>`;
+    }
+    h += '</tr>';
+  }
+  return h + '</table>';
+}
+
+function progHTML(){
+  const opcard = op => {
+    const T = S.totals[op], tr = trendFor(op);
+    return `<div class="opstat">
+      <div class="top"><span class="name" style="font-weight:700"><span class="num" style="color:var(--blue)">${OPS[op].sym}</span> ${OPS[op].name}</span></div>
+      <div class="stepper"><button data-lv="${op}" data-d="-1" aria-label="Baisser le niveau" id="lvm-${op}">−</button>${pips(S.levels[op])}<button data-lv="${op}" data-d="1" aria-label="Monter le niveau" id="lvp-${op}">+</button></div>
+      <div class="muted" style="font-size:.8rem">${LEVEL_DESC[op][S.levels[op]-1]}</div>
+      <div class="num" style="font-size:.85rem">${T.n ? `${Math.round(100*T.ok/T.n)} % juste · ${fmtS(T.t/T.n)}` : '—'}</div>
+      <div class="muted" style="font-size:.75rem">${fr(T.n)} calcul${T.n>1?'s':''}</div>
+      <div class="trend ${tr.cls}">${tr.txt}</div>
+    </div>`;
+  };
+  const any = S.sessions.length>0;
+  return `<div class="section" style="gap:18px">
+    <div class="section">
+      <span class="label">Par opération</span>
+      <div class="opstats">${['add','sub','mul','div'].map(opcard).join('')}</div>
+    </div>
+    <div class="section">
+      <span class="label">Dernières séances</span>
+      ${any ? `<div class="chartbox">${chartSVG()}</div>
+      <div class="legend"><span><i style="background:var(--green)"></i>9–10</span><span><i style="background:var(--blue)"></i>6–8</span><span><i style="background:var(--red)"></i>0–5</span><span><i style="background:var(--amber);border-radius:50%"></i>temps moyen par calcul</span></div>`
+      : `<div class="empty-note">Tes séances apparaîtront ici : score sur ${SESSION_LEN} et temps moyen par calcul.</div>`}
+    </div>
+    <div class="section">
+      <span class="label">Carte des tables (× et ÷)</span>
+      <div class="heat-wrap">${heatHTML()}</div>
+      <div class="legend"><span><i style="background:var(--green)"></i>acquis</span><span><i style="background:var(--amber)"></i>juste mais lent (> 5 s)</span><span><i style="background:var(--red)"></i>à revoir</span><span><i style="background:var(--paper);border:1px solid var(--line)"></i>pas encore vu</span></div>
+    </div>
+    <div class="row"><button class="linkbtn danger" id="reset">Tout remettre à zéro</button></div>
+  </div>`;
+}
+
+function bind(){
+  document.querySelectorAll('[data-start]').forEach(b => b.onclick = () => startDrill(b.dataset.start));
+  document.querySelectorAll('[data-table]').forEach(b => b.onclick = () => {
+    const n = +b.dataset.table;
+    S.tables = S.tables.includes(n) ? S.tables.filter(x=>x!==n) : [...S.tables, n].sort((a,b)=>a-b);
+    save(); render();
+  });
+  document.querySelectorAll('[data-tables]').forEach(b => b.onclick = () => startDrill(b.dataset.tables, S.tables.slice()));
+  document.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => {
+    const op = b.dataset.lv; S.levels[op] = Math.min(MAXL, Math.max(1, S.levels[op] + +b.dataset.d)); S.win[op]=[]; save(); render();
+  });
+  const r = $('#reset');
+  if (r) r.onclick = () => {
+    if (r.dataset.armed){ S = fresh(); save(); render(); }
+    else { r.dataset.armed = '1'; r.textContent = 'Confirmer : effacer tout l\'historique'; setTimeout(()=>{ if(r.isConnected){ delete r.dataset.armed; r.textContent='Tout remettre à zéro'; } }, 4000); }
+  };
+}
+
+/* ---------- Drill ---------- */
+function startDrill(mode, tables){
+  drill = {mode, tables, i:0, results:[], startLevels:{...S.levels}, done:false};
+  nextQ();
+}
+function nextQ(){
+  const op = drill.mode==='mix' ? pick(['add','sub','mul','div']) : drill.mode;
+  let q, tries=0;
+  do { q = makeQ(op, S.levels[op], drill.tables); tries++; }
+  while (tries<10 && drill.cur && q.a===drill.cur.a && q.b===drill.cur.b);
+  if (drill.tables) q.fixed = true;
+  drill.cur = q; drill.input = ''; drill.state = 'ask'; drill.hint = false; drill.t0 = performance.now(); drill.levelMsg = 0;
+  render();
+}
+function renderDrill(){
+  const v = $('#view'), q = drill.cur;
+  if (drill.done) return renderResults();
+  const lvl = drill.tables ? `Tables ${drill.tables.join(', ')}` : `${OPS[q.op].name} · niv. ${S.levels[q.op]}`;
+  const dots = Array.from({length:SESSION_LEN},(_,i)=>{
+    const r = drill.results[i]; return `<i class="${r ? (r.ok ? (r.hint?'hint':'ok') : 'ko') : (i===drill.i?'cur':'')}"></i>`;
+  }).join('');
+  const cls = drill.state==='ok' ? 'ok' : drill.state==='ko' ? 'ko' : '';
+  v.innerHTML = `<div class="drill">
+    <div class="dots" aria-label="Calcul ${drill.i+1} sur ${SESSION_LEN}">${dots}</div>
+    <div class="board ${cls}" id="board">
+      <div class="meta"><span>${lvl}</span><span class="num">${drill.i+1}/${SESSION_LEN}</span></div>
+      <div class="q" aria-live="polite">${fr(q.a)} ${OPS[q.op].sym} ${fr(q.b)}</div>
+      <div class="ans num ${drill.input?'':'empty'}" id="ans">${drill.input}</div>
+      ${drill.state==='ko' ? `<div class="correction">= ${fr(q.ans)}</div>` : ''}
+      ${drill.state==='ask' ? `<div class="timebar" id="timebar"></div>` : ''}
+    </div>
+    ${drill.levelMsg ? `<div class="banner ${drill.levelMsg>0?'up':'down'}">${drill.levelMsg>0?`Niveau ${S.levels[q.op]} débloqué en ${OPS[q.op].name.toLowerCase()} : ${LEVEL_DESC[q.op][S.levels[q.op]-1].toLowerCase()}`:`On repasse au niveau ${S.levels[q.op]} en ${OPS[q.op].name.toLowerCase()} pour consolider`}</div>` : ''}
+    ${(drill.hint || drill.state==='ko') ? hintHTML(hintFor(q)) : ''}
+    ${drill.state==='ko' ? `<button class="btn" id="cont">Continuer</button>` : `
+    <div class="pad" id="pad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}" id="k${n}">${n}</button>`).join('')}
+      <button data-k="0" id="k0" class="zero">0</button>
+      <button class="del" data-k="del" id="kdel" aria-label="Effacer">⌫</button>
+    </div>`}
+    <div class="drill-actions">
+      <button class="linkbtn" id="quit">Arrêter la séance</button>
+      ${drill.state==='ask' && !drill.hint ? `<button class="linkbtn amber" id="hintbtn">Astuce</button>` : ''}
+    </div>
+  </div>`;
+  document.querySelectorAll('#pad [data-k]').forEach(b => b.onclick = () => key(b.dataset.k));
+  const c = $('#cont'); if (c) { c.onclick = advance; c.focus(); }
+  $('#quit').onclick = () => { if (drill.results.length) finish(); else { drill=null; render(); } };
+  const hb = $('#hintbtn'); if (hb) hb.onclick = () => { drill.hint = true; renderDrill(); };
+  if (drill.state==='ask') animateBar();
+}
+function animateBar(){
+  const bar = $('#timebar'); if (!bar) return;
+  const q = drill.cur, target = TARGET[q.op][(drill.tables?3:S.levels[q.op])-1]*1000, t0 = drill.t0;
+  const step = () => {
+    if (!bar.isConnected) return;
+    const p = Math.min(1,(performance.now()-t0)/target);
+    bar.style.width = (100*(1-p))+'%';
+    if (p<1) requestAnimationFrame(step);
+  };
+  step();
+}
+function key(k){
+  if (!drill || drill.done) return;
+  if (drill.state==='ko'){ if (k==='ok') advance(); return; }
+  if (drill.state!=='ask') return;
+  if (k==='ok') return;
+  if (k==='del') drill.input = drill.input.slice(0,-1);
+  else drill.input = (drill.input==='0'?'':drill.input) + k;
+  const a = $('#ans'); a.textContent = drill.input; a.classList.toggle('empty', !drill.input);
+  // Auto-check as soon as the answer has as many digits as the right result
+  if (drill.input.length >= String(drill.cur.ans).length) submit();
+}
+function submit(){
+  const q = drill.cur, secs = (performance.now()-drill.t0)/1000;
+  const ok = +drill.input === q.ans;
+  const lm = record(q, ok, secs, drill.hint);
+  drill.results.push({q, ok, secs, hint:drill.hint, given:drill.input, lvl:S.levels[q.op]});
+  drill.levelMsg = lm; save();
+  drill.state = ok ? 'ok' : 'ko';
+  renderDrill();
+  if (ok) setTimeout(advance, lm ? 1400 : 550);
+}
+function advance(){
+  if (!drill || drill.state==='ask') return;
+  drill.i++;
+  if (drill.i>=SESSION_LEN) finish(); else nextQ();
+}
+function finish(){
+  const R = drill.results;
+  const ops = {};
+  R.forEach(r => { const o = ops[r.q.op] || (ops[r.q.op]={n:0,ok:0,t:0,lvl:0}); o.n++; if(r.ok) o.ok++; o.t+=Math.min(r.secs,60); o.lvl = r.lvl; });
+  const score = R.filter(r=>r.ok).length;
+  const avg = R.reduce((a,r)=>a+Math.min(r.secs,60),0)/R.length;
+  if (R.length>=SESSION_LEN || R.length>=5){
+    S.sessions.push({d:new Date().toISOString(), mode:drill.mode, score: Math.round(score*SESSION_LEN/R.length), n:R.length, avg, ops});
+    if (S.sessions.length>200) S.sessions = S.sessions.slice(-200);
+  }
+  save();
+  drill.done = true; drill.summary = {score, avg, n:R.length};
+  render();
+}
+function renderResults(){
+  const v = $('#view'), {score, avg, n} = drill.summary, R = drill.results;
+  const best = R.filter(r=>r.ok).reduce((m,r)=>Math.min(m,r.secs), Infinity);
+  const ups = [], downs = [];
+  for (const op in OPS){ const d = S.levels[op]-drill.startLevels[op]; if (d>0) ups.push(OPS[op].name.toLowerCase()); if (d<0) downs.push(OPS[op].name.toLowerCase()); }
+  const prev = S.sessions.filter(s=>s.mode===drill.mode).slice(-6,-1);
+  let cmp = '';
+  if (prev.length){
+    const pa = prev.reduce((a,s)=>a+s.avg,0)/prev.length;
+    const d = avg - pa;
+    cmp = Math.abs(d)<0.2 ? 'même rythme que d\'habitude' : d<0 ? `${fmtS(-d)} plus rapide que ta moyenne récente` : `${fmtS(d)} plus lent que ta moyenne récente`;
+  }
+  const miss = R.filter(r=>!r.ok || r.hint);
+  v.innerHTML = `<div class="section" style="gap:16px">
+    <div class="score"><span class="big">${score}/${n}</span><span class="muted">${score===n?'Sans faute.':score>=n*.8?'Très bien.':score>=n*.5?'Ça progresse.':'On consolide.'}</span></div>
+    <div class="kv">
+      <div><span class="label">Temps moyen</span><strong>${fmtS(avg)}</strong></div>
+      <div><span class="label">Plus rapide</span><strong>${isFinite(best)?fmtS(best):'—'}</strong></div>
+      <div><span class="label">Astuces</span><strong>${R.filter(r=>r.hint).length}</strong></div>
+    </div>
+    ${cmp ? `<div class="muted">${cmp.charAt(0).toUpperCase()+cmp.slice(1)}.</div>` : ''}
+    ${ups.length ? `<div class="banner up">Niveau supérieur en ${ups.join(', ')}</div>` : ''}
+    ${downs.length ? `<div class="banner down">Retour d'un niveau en ${downs.join(', ')} pour consolider</div>` : ''}
+    ${miss.length ? `<span class="label">À retenir</span><div class="mistakes">${miss.map(r=>{
+      const h = hintFor(r.q);
+      return `<div class="mistake" style="border-left-color:${r.ok?'var(--amber)':'var(--red)'}"><span class="num">${fr(r.q.a)} ${OPS[r.q.op].sym} ${fr(r.q.b)} = ${fr(r.q.ans)}</span>${r.ok?' <span class="muted">(avec astuce)</span>':` <span class="muted">· tu as répondu ${r.given}</span>`}<div class="muted" style="margin-top:3px">${h.t} : ${h.s.join(' · ')}</div></div>`;
+    }).join('')}</div>` : ''}
+    <div class="row">
+      <button class="btn" id="again">Encore une séance</button>
+      <button class="btn ghost" id="home">Accueil</button>
+    </div>
+  </div>`;
+  $('#again').onclick = () => startDrill(drill.mode, drill.tables);
+  $('#home').onclick = () => { drill=null; render(); };
+}
+
+document.addEventListener('keydown', e => {
+  if (!drill || drill.done) return;
+  if (/^[0-9]$/.test(e.key)) { key(e.key); e.preventDefault(); }
+  else if (e.key==='Backspace') { key('del'); e.preventDefault(); }
+  else if (e.key==='Enter') { if (drill.state==='ko') advance(); e.preventDefault(); }
+});
+
+render();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
