@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Calcul">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#FFFBF2">
+<meta name="theme-color" content="#ECE7DD">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -18,12 +18,12 @@
 /* Layout: one narrow column on graph paper, tabs on top, big ink numbers in the middle */
 /* Layout: one column on a sunny graph-paper page; each operation has its own colour */
 :root{
-  --paper:#FFFBF2; --grid:rgba(61,90,254,.08); --card:#FFFFFF; --ink:#232552; --muted:#6E7099;
+  --paper:#ECE7DD; --grid:rgba(61,90,254,.07); --card:#F8F5EF; --ink:#232552; --muted:#6E7099;
   --blue:#3D5AFE; --blue-soft:rgba(61,90,254,.12);
   --c-add:#13B37A; --c-sub:#FF5E57; --c-mul:#7A5AF8; --c-div:#FF9F1C; --sun:#FFD23F;
   --red:#F0453A; --red-soft:rgba(240,69,58,.12);
   --green:#13B37A; --green-soft:rgba(19,179,122,.14); --amber:#F08C00; --amber-soft:rgba(255,159,28,.16);
-  --line:#EADFCB; --shadow:#E4D6BC;
+  --line:#DDD3C2; --shadow:#D2C5AF;
   --f-display:"Fredoka", "Baloo 2", "Segoe UI", system-ui, sans-serif;
   --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
   --f-num:"Fredoka", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
@@ -159,7 +159,7 @@ h2{font-family:var(--f-display);font-weight:700;font-size:1.15rem;margin:0;text-
 nav.tabs{border-radius:999px;box-shadow:0 3px 0 var(--shadow)}
 nav.tabs button{border-radius:999px}
 nav.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
-.mode{border-radius:20px;border:2px solid color-mix(in srgb,var(--c) 30%,transparent);background:color-mix(in srgb,var(--c) 10%,#fff);box-shadow:0 4px 0 color-mix(in srgb,var(--c) 35%,transparent);transition:transform .12s}
+.mode{border-radius:20px;border:2px solid color-mix(in srgb,var(--c) 30%,transparent);background:color-mix(in srgb,var(--c) 10%,var(--card));box-shadow:0 4px 0 color-mix(in srgb,var(--c) 35%,transparent);transition:transform .12s}
 .mode:hover{border-color:var(--c)}
 .mode:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 35%,transparent)}
 .mode .sym{color:var(--c);font-size:2rem}
@@ -171,8 +171,8 @@ nav.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
 .chip[aria-pressed="true"]{background:var(--c-mul);border-color:var(--c-mul);color:#fff;box-shadow:0 3px 0 #5a3fd0}
 .btn{border-radius:16px;background:var(--c-mul);color:#fff;box-shadow:0 4px 0 #5a3fd0;font-family:var(--f-display);font-weight:600;font-size:1.05rem}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #5a3fd0}
-.btn.ghost{background:#fff;color:var(--c-mul);border:2px solid color-mix(in srgb,var(--c-mul) 35%,transparent);box-shadow:0 4px 0 var(--shadow)}
-.board{border-radius:26px;border:2px solid color-mix(in srgb,var(--c) 35%,transparent);background:color-mix(in srgb,var(--c) 7%,#fff);box-shadow:0 5px 0 color-mix(in srgb,var(--c) 30%,transparent)}
+.btn.ghost{background:var(--card);color:var(--c-mul);border:2px solid color-mix(in srgb,var(--c-mul) 35%,transparent);box-shadow:0 4px 0 var(--shadow)}
+.board{border-radius:26px;border:2px solid color-mix(in srgb,var(--c) 35%,transparent);background:color-mix(in srgb,var(--c) 7%,var(--card));box-shadow:0 5px 0 color-mix(in srgb,var(--c) 30%,transparent)}
 .q{color:var(--ink);font-weight:600}
 .q .op{color:var(--c)}
 .ans{color:var(--c);border-bottom-color:var(--c);border-bottom-width:4px;font-weight:600}
@@ -184,7 +184,7 @@ nav.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
 .dots i{height:8px;border-radius:99px}
 .dots i.ok{background:var(--c-add)} .dots i.ko{background:var(--c-sub)} .dots i.hint{background:var(--sun)} .dots i.cur{background:var(--c-mul)}
 .pad button{border-radius:18px;border:2px solid var(--line);box-shadow:0 4px 0 var(--shadow);font-family:var(--f-num);font-weight:600;font-size:1.6rem;transition:transform .06s}
-.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow);background:color-mix(in srgb,var(--c,var(--c-mul)) 15%,#fff)}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow);background:color-mix(in srgb,var(--c,var(--c-mul)) 15%,var(--card))}
 .pad .del{color:var(--c-sub)}
 .combo{color:var(--c-div);font-weight:700}
 .cheer{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:700;font-size:1.5rem;color:var(--green);pointer-events:none;animation:rise .6s ease-out forwards}
@@ -195,9 +195,9 @@ nav.tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
 .kv div{border-radius:16px;border-width:2px;box-shadow:0 3px 0 var(--shadow)}
 .strat,.opstat,.chartbox,.heat-wrap,.mistake{border-radius:18px;border-width:2px;box-shadow:0 3px 0 var(--shadow)}
 .strat h3 .num{color:var(--c)}
-.ex{background:color-mix(in srgb,var(--c) 12%,#fff)}
+.ex{background:color-mix(in srgb,var(--c) 12%,var(--card))}
 .opstat .num[style]{color:var(--c)!important}
-.stepper button{border-radius:10px;background:#fff;border-width:2px}
+.stepper button{border-radius:10px;background:var(--card);border-width:2px}
 .opstat .pips i.on{background:var(--c)}
 .banner{border-radius:16px}
 .banner.up{background:var(--sun);color:var(--ink)}
